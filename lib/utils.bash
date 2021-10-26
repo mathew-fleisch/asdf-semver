@@ -20,13 +20,12 @@ fi
 
 sort_versions() {
   sed 'h; s/[+-]/./g; s/.p\([[:digit:]]\)/.z\1/; s/$/.z/; G; s/\n/ /' |
-    LC_ALL=C sort -t. -k 1,1 -k 2,2n -k 3,3n -k 4,4n -k 5,5n | awk '{print $2}' | sort -V -r
+    LC_ALL=C sort -t. -k 1,1 -k 2,2n -k 3,3n -k 4,4n -k 5,5n | awk '{print $2}'
 }
 
 list_github_tags() {
   git ls-remote --tags --refs "$GH_REPO" |
-    grep -o 'refs/tags/.*' | cut -d/ -f3- | sort -V -r
-    #| sed 's/^v//' # NOTE: You might want to adapt this sed to remove non-version strings from tags
+    grep -o 'refs/tags/.*' | cut -d/ -f3-
 }
 
 list_all_versions() {
@@ -57,16 +56,16 @@ install_version() {
 
   (
     mkdir -p "$install_path"
-    cp -r "$ASDF_DOWNLOAD_PATH"/* "$install_path"
+    cp -r "$ASDF_DOWNLOAD_PATH/$TOOL_NAME" "$install_path/."
 
-    if [ -f "$install_path/bin/$TOOL_NAME" ]; then
+    if [ -f "$install_path/$TOOL_NAME" ]; then
       echo "Installed $TOOL_NAME $version to $install_path"
     else
       fail "Could not install $TOOL_NAME $version to $install_path"
     fi
     local tool_cmd
     tool_cmd="$(echo "$TOOL_TEST" | cut -d' ' -f1)"
-    test -x "$install_path/bin/$tool_cmd" || fail "Expected $install_path/bin/$tool_cmd to be executable."
+    test -x "$install_path/$tool_cmd" || fail "Expected $install_path/$tool_cmd to be executable."
 
     echo "$TOOL_NAME $version installation was successful!"
   ) || (
