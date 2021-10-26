@@ -2,7 +2,6 @@
 
 set -euo pipefail
 
-# TODO: Ensure this is the correct GitHub homepage where releases can be downloaded for semver.
 GH_REPO="https://github.com/fsaintjacques/semver-tool"
 TOOL_NAME="semver"
 TOOL_TEST="semver --version"
@@ -26,26 +25,25 @@ sort_versions() {
 
 list_github_tags() {
   git ls-remote --tags --refs "$GH_REPO" |
-    grep -o 'refs/tags/.*' | cut -d/ -f3- |
-    sed 's/^v//' # NOTE: You might want to adapt this sed to remove non-version strings from tags
+    grep -o 'refs/tags/.*' | cut -d/ -f3- | sort -V -r
+    #| sed 's/^v//' # NOTE: You might want to adapt this sed to remove non-version strings from tags
 }
 
 list_all_versions() {
-  # TODO: Adapt this. By default we simply list the tag names from GitHub releases.
-  # Change this function if semver has other means of determining installable versions.
   list_github_tags
 }
 
 download_release() {
-  local version filename url
+  local version url
   version="$1"
   filename="$2"
 
-  # TODO: Adapt the release URL convention for semver
-  url="$GH_REPO/archive/v${version}.tar.gz"
+  # https://raw.githubusercontent.com/fsaintjacques/semver-tool/3.2.0/src/semver
+  url="https://raw.githubusercontent.com/fsaintjacques/semver-tool/${version}/src/semver"
 
   echo "* Downloading $TOOL_NAME release $version..."
   curl "${curl_opts[@]}" -o "$filename" -C - "$url" || fail "Could not download $url"
+  chmod +x "$filename"
 }
 
 install_version() {
