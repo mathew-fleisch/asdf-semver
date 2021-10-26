@@ -20,7 +20,7 @@ fi
 
 sort_versions() {
   sed 'h; s/[+-]/./g; s/.p\([[:digit:]]\)/.z\1/; s/$/.z/; G; s/\n/ /' |
-    LC_ALL=C sort -t. -k 1,1 -k 2,2n -k 3,3n -k 4,4n -k 5,5n | awk '{print $2}'
+    LC_ALL=C sort -t. -k 1,1 -k 2,2n -k 3,3n -k 4,4n -k 5,5n | awk '{print $2}' | sort -V -r
 }
 
 list_github_tags() {
@@ -41,7 +41,7 @@ download_release() {
   # https://raw.githubusercontent.com/fsaintjacques/semver-tool/3.2.0/src/semver
   url="https://raw.githubusercontent.com/fsaintjacques/semver-tool/${version}/src/semver"
 
-  echo "* Downloading $TOOL_NAME release $version..."
+  echo "* Downloading $TOOL_NAME release $version to $filename..."
   curl "${curl_opts[@]}" -o "$filename" -C - "$url" || fail "Could not download $url"
   chmod +x "$filename"
 }
@@ -59,7 +59,11 @@ install_version() {
     mkdir -p "$install_path"
     cp -r "$ASDF_DOWNLOAD_PATH"/* "$install_path"
 
-    # TODO: Asert semver executable exists.
+    if [ -f "$install_path/bin/$TOOL_NAME" ]; then
+      echo "Installed $TOOL_NAME $version to $install_path"
+    else
+      fail "Could not install $TOOL_NAME $version to $install_path"
+    fi
     local tool_cmd
     tool_cmd="$(echo "$TOOL_TEST" | cut -d' ' -f1)"
     test -x "$install_path/bin/$tool_cmd" || fail "Expected $install_path/bin/$tool_cmd to be executable."
